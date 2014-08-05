@@ -1,0 +1,1 @@
+# ActiveRecord Exercise 1
