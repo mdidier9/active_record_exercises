@@ -1,65 +1,85 @@
 require_relative '../app'
 
-describe "Doctor" do
-	let(:doctor_1) {Doctor.create(name: "Dr. Bob", specialization: "Internal Medicine")}
-	let(:doctor_2) {Doctor.create(specialization: "Radiology")}
+describe Doctor do
+  let(:doctor_1) {Doctor.create(name: "Dr. Bob", specialization: "Internal Medicine")}
+  let(:doctor_2) {Doctor.create(specialization: "Radiology")}
 
   it "should have a specialization property" do
-  	expect(doctor_1.specialization).to eq("Internal Medicine")
+    expect(doctor_1.specialization).to eq("Internal Medicine")
   end
 
   it "should require the name property at creation" do
-  	expect(doctor_2).to be_invalid
+    expect(doctor_2).to be_invalid
   end
 
   it "should return a collection of patients(clients)" do
-  	expect(doctor_1.clients).to eq([])
+    expect(doctor_1.clients).to eq([])
   end
 end
 
 
-describe "Patient" do
-	let(:doctor_bob) {Doctor.create(name: "Dr. Bob")}
-	let(:tom) {Patient.create(name: "Tom", email: "test@test.com", phone_number: "000-000-0000")}
+describe Patient do
+  let(:doctor_bob) {Doctor.create(name: "Dr. Bob", specialization: "Internal Medicine")}
+  let(:doctor_sue) {Doctor.create(name: "Dr. Sue", specialization: "Radiology")}
+  let(:tom) {Patient.create(name: "Tom",
+                            email: "tom@example.com",
+                            phone_number: "000-000-0000")}
+  let(:mark) {Patient.create(name: "Mark",
+                             email: "mark@example.com",
+                             phone_number: "000-000-0000")}
 
-	it "should have a collection of doctors" do
-		tom.reload
-		expect(tom).to respond_to(:doctors)
-	end
+  before do
+    tom.doctors << doctor_bob
+    tom.doctors << doctor_sue
 
-	it "should require an name at creation" do
-		tom.reload
-		expect(tom.name).to eq("Tom")
-	end
+    mark.doctors << doctor_sue
+  end
 
-	it "should require an email at creation" do
-		tom.reload
-		expect(tom.email).to eq("test@test.com")
-	end
+  it "should have a collection of doctors" do
+    # reload the Doctor tom to ensure the collection of doctors
+    # was persisted
+    tom.reload
 
-	it "should require a phone number at creation" do
-		tom.reload
-		expect(tom.phone_number).to eq("000-000-0000")
-	end
+    expect(tom.doctors).to match_array [doctor_bob, doctor_sue]
+  end
+
+  it "should list patients for a particular doctor" do
+    # reload the Doctor tom to ensure the collection of doctors
+    # was persisted
+    doctor_sue.reload
+
+    expect(doctor_sue.clients).to match_array [tom, mark]
+  end
 end
 
 
-describe "Doctor Patient Relationship" do 
-	let(:doctor_lisa) {Doctor.create(name: "Dr. Lisa", specialization: "Family Doctor")}
-	let(:mike) {Patient.create(name: "Mike", email: "mike@test.com", phone_number: "000-000-0000")}
-	let(:health_care) {DoctorPatientRelationship.create(doctor: doctor_lisa, patient: mike, primary_care: true)}
- 
- 	it "should specficy if the relationship is a primary care provider" do
- 		expect(health_care.primary_care).to eq(true)
- 	end
+describe DoctorPatientRelationship do
+  let(:doctor_lisa) {Doctor.create(name: "Dr. Lisa",
+                                   specialization: "Family Doctor")}
+  let(:mike) {Patient.create(name: "Mike",
+                             email: "mike@test.com",
+                             phone_number: "000-000-0000")}
+  let(:relationship) {DoctorPatientRelationship.create(doctor: doctor_lisa,
+                                                       patient: mike,
+                                                       primary_care: true)}
 
- 	it "should have a specific doctor" do
- 		health_care.reload
- 		expect(health_care.doctor).to eq(doctor_lisa)
- 	end
+  before do
+   relationship.reload
+  end
 
- 	it "should have a specific patient" do
- 		health_care.reload
- 		expect(health_care.patient).to eq(mike)
- 	end
+  it "should have a specific doctor" do
+    expect(relationship.doctor).to eq(doctor_lisa)
+  end
+
+  it "should have a specific patient" do
+    expect(relationship.patient).to eq(mike)
+  end
+
+  it "should be possible to find the relationships for a patient" do
+    expect(mike.doctor_patient_relationships).to eq [relationship]
+  end
+
+  it "should be possible to find the relationships for a doctor" do
+    expect(doctor_lisa.doctor_patient_relationships).to eq [relationship]
+  end
 end

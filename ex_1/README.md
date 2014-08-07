@@ -1,5 +1,14 @@
-# ActiveRecord Exercise 1 - Patients and Doctors
+# ActiveRecord Migration Drill - Patients and Doctors
 
-###Please include a migration to satisfy the rspec tests and all associations.  
+This drill includes three complete models:
+* `Patient`
+* `Doctor`
+* `DoctorPatientRelationship` (the join model)
 
-###DO NOT MODIFY any other code.
+These models include ActiveRecord relations and a few validations. Your
+challenge is to get the tests passing by **writing the missing migrations.**
+
+Create your migrations in `migrations.rb`, following the example.
+
+Refer to the associations and tests to decide on your database schema. **Do not
+make any changes to the models.**
